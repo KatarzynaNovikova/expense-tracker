@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ExpenseDTO {
-    // holds the data converted from RequestBody - JSON
+    // DataTransferObject holds the data converted from RequestBody - JSON
 
     private String name;
     private double amount;

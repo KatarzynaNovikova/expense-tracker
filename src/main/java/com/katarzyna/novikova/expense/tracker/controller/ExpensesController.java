@@ -5,10 +5,11 @@ import com.katarzyna.novikova.expense.tracker.service.ExpenseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -25,9 +26,20 @@ public class ExpensesController {
 
     @PostMapping
     public ResponseEntity<Void> createExpense(@RequestBody ExpenseDTO expense) {
-        log.info("expense details: {}", expense);
-        expenseService.add(expense);
-        return ResponseEntity.status(200).build();
+        log.info("expense details: {}", expense);   // wyświetla informacje w log file (na serwerze lub w konsoli lokalnie)
+        long id = expenseService.add(expense);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequestUri()
+                .path("/{id}")
+                .buildAndExpand(id)
+                .toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ExpenseDTO> getExpense(@PathVariable long id) {
+        Optional<ExpenseDTO> expense = expenseService.get(id);
+        return ResponseEntity.of(expense);
     }
 
 }
