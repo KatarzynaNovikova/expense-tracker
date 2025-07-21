@@ -26,4 +26,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
         return Optional.empty();
     }
+
+    @Override
+    public void delete(long id) {
+        expenses.remove(id);
+    }
 }
