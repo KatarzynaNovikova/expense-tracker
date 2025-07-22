@@ -28,7 +28,21 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public Map<Long, ExpenseDTO> getAll() {
+        return expenses;
+    }
+
+    @Override
     public void delete(long id) {
         expenses.remove(id);
+    }
+
+    @Override
+    public Optional<ExpenseDTO> update(long id, ExpenseDTO expenseDTO) {
+        if (expenses.containsKey(id)) {
+            expenses.put(id, expenseDTO);
+            return Optional.ofNullable(expenses.get(id));
+        }
+        return Optional.empty();
     }
 }

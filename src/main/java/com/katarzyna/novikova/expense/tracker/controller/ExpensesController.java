@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -42,10 +43,20 @@ public class ExpensesController {
         return ResponseEntity.of(expense);
     }
 
+    @GetMapping
+    public Map<Long, ExpenseDTO> getAllExpenses() {
+        return expenseService.getAll();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteExpense(@PathVariable long id) {
         expenseService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ExpenseDTO> updateExpense(@PathVariable long id, @RequestBody ExpenseDTO expenseDTO) {
+        Optional<ExpenseDTO> expense = expenseService.update(id, expenseDTO);
+        return ResponseEntity.of(expense);
+    }
 }
