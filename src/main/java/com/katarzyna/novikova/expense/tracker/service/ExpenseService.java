@@ -15,4 +15,5 @@ public interface ExpenseService {
     Map<Long, ExpenseDTO> getAll();
 
     Optional<ExpenseDTO> update(long id, ExpenseDTO expenseDTO);
+
 }
