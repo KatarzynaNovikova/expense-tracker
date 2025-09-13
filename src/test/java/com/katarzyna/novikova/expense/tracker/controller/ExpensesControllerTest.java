@@ -12,13 +12,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -90,7 +89,31 @@ class ExpensesControllerTest {
     }
 
     @Test
-    void getAllExpenses() {
+    @DisplayName("Successfully get all existing expenses")
+    void getAllExpenses() throws Exception {
+        // Given
+        ExpenseDTO expenseDTO = new ExpenseDTO();
+        expenseDTO.setName("T-shirts");
+        expenseDTO.setAmount(199.9);
+        expenseDTO.setCategory("Clothes");
+
+        ExpenseDTO expenseDTO2 = new ExpenseDTO();
+        expenseDTO2.setName("Pants");
+        expenseDTO2.setAmount(299.9);
+        expenseDTO2.setCategory("Clothes");
+
+        long id = 1;
+        long id2 = 2;
+        Map<Long, ExpenseDTO> expenses = new LinkedHashMap<>();
+        expenses.put(id, expenseDTO);
+        expenses.put(id2, expenseDTO2);
+        when(expenseService.getAll()).thenReturn(expenses);
+
+        // When Then
+        mockMvc.perform(get("/expenses")).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.1").value(expenseDTO))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.2").value(expenseDTO2));
     }
 
     @Test
@@ -107,7 +130,7 @@ class ExpensesControllerTest {
     }
 
     @Test
-    @DisplayName("Fail to delete non existing expense and return 'not found'")
+    @DisplayName("Fail to delete non existing expense and return 'no content")
     void failedToDeleteNonExistingExpenseById() throws Exception {
         // Given
 
@@ -115,7 +138,7 @@ class ExpensesControllerTest {
 
         // When Then
         mockMvc.perform(delete("/expenses/{id}", id))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNoContent());
         verify(expenseService).delete(1);
     }
 
@@ -133,12 +156,34 @@ class ExpensesControllerTest {
 
         when(expenseService.update(id, expenseDTO)).thenReturn(Optional.of(expenseDTO));
 
-            // When Then
+        // When Then
         mockMvc.perform(put("/expenses/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)).andDo(print())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)).andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(expenseDTO.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.amount").value(expenseDTO.getAmount()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.category").value(expenseDTO.getCategory()));
+    }
+
+    @Test
+    @DisplayName("Attempt to update non existing expense and return 'not found' code")
+    void attemptToUpdateNonExistingExpenseReturnsNotFound() throws Exception {
+        // Given
+        ExpenseDTO expenseDTO = new ExpenseDTO();
+        expenseDTO.setName("T-shirts");
+        expenseDTO.setAmount(199.9);
+        expenseDTO.setCategory("Clothes");
+        String requestBody = objectMapper.writeValueAsString(expenseDTO);   // converts Java object to json written in format String
+        long id = 1;
+
+
+        when(expenseService.update(id, expenseDTO)).thenReturn(Optional.empty());
+
+        // When Then
+        mockMvc.perform(put("/expenses/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)).andDo(print())
+                .andExpect(status().isNotFound());
     }
 }
